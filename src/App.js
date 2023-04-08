@@ -14,6 +14,7 @@ function App() {
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
+        //console.log(user.email);
         dispatch(getUser(user.email));
       } else {
         dispatch(toggleLoading());

@@ -78,7 +78,6 @@ const EmployerRegistration = () => {
             </label>
             <input
               disabled
-              
               className="cursor-not-allowed"
               type="email"
               id="email"

@@ -3,7 +3,7 @@ import React from "react";
 import meeting from "../assets/meeting.jpg";
 import { BsArrowRightShort, BsArrowReturnRight } from "react-icons/bs";
 import { useNavigate, useParams } from "react-router-dom";
-import { useJobByIdQuery } from "../features/job/jobApi";
+import { useApplyMutation, useJobByIdQuery } from "../features/job/jobApi";
 import userEvent from "@testing-library/user-event";
 import { useSelector } from "react-redux";
 import { toast } from "react-hot-toast";
@@ -28,7 +28,7 @@ const JobDetails = () => {
     _id,
   } = data?.data || {};
   const navigate = useNavigate();
-
+  const [apply] = useApplyMutation();
   const handleApply = () => {
     if (user.role === "employer") {
       toast.error("You need a candidate account to apply.");
@@ -36,13 +36,14 @@ const JobDetails = () => {
     }
     if (user.role === "") {
       navigate("/register");
+      return;
     }
     const data = {
       userId: user._id,
       email: user.email,
       jobId: _id,
     };
-    console.log(data);
+    apply(data);
   };
   return (
     <div className="pt-14 grid grid-cols-12 gap-5">
