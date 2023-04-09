@@ -1,17 +1,27 @@
 import React from "react";
-
+import { useForm, useWatch } from "react-hook-form";
 import meeting from "../assets/meeting.jpg";
 import { BsArrowRightShort, BsArrowReturnRight } from "react-icons/bs";
 import { useNavigate, useParams } from "react-router-dom";
-import { useApplyMutation, useJobByIdQuery } from "../features/job/jobApi";
+import {
+  useApplyMutation,
+  useJobByIdQuery,
+  useQuestionMutation,
+  useReplyMutation,
+} from "../features/job/jobApi";
 import userEvent from "@testing-library/user-event";
 import { useSelector } from "react-redux";
 import { toast } from "react-hot-toast";
+import { useState } from "react";
 const JobDetails = () => {
+  const [reply, setReply] = useState("");
   const { id } = useParams();
   const { user } = useSelector((state) => state.auth);
-  const { data, isLoading, isError } = useJobByIdQuery(id);
-  console.log(data);
+  const { data, isLoading, isError } = useJobByIdQuery(id, {
+    pollingInterval: 1000,
+  });
+  const { register, handleSubmit, reset } = useForm();
+
   const {
     companyName,
     employmentType,
@@ -29,6 +39,8 @@ const JobDetails = () => {
   } = data?.data || {};
   const navigate = useNavigate();
   const [apply] = useApplyMutation();
+  const [sendQuestion] = useQuestionMutation();
+  const [sendReply] = useReplyMutation();
   const handleApply = () => {
     if (user.role === "employer") {
       toast.error("You need a candidate account to apply.");
@@ -44,6 +56,24 @@ const JobDetails = () => {
       jobId: _id,
     };
     apply(data);
+  };
+
+  const handleQuestion = (data) => {
+    const queData = {
+      ...data,
+      userId: user._id,
+      email: user.email,
+      jobId: _id,
+    };
+    sendQuestion(queData);
+    reset();
+  };
+  const handleReply = (id) => {
+    const data = {
+      reply,
+      userId: id,
+    };
+    sendReply(data);
   };
   return (
     <div className="pt-14 grid grid-cols-12 gap-5">
@@ -114,32 +144,44 @@ const JobDetails = () => {
                     </p>
                   ))}
 
-                  <div className="flex gap-3 my-5">
-                    <input placeholder="Reply" type="text" className="w-full" />
-                    <button
-                      className="shrink-0 h-14 w-14 bg-primary/10 border border-primary hover:bg-primary rounded-full transition-all  grid place-items-center text-primary hover:text-white"
-                      type="button"
-                    >
-                      <BsArrowRightShort size={30} />
-                    </button>
-                  </div>
+                  {user.role === "employer" && (
+                    <div className="flex gap-3 my-5">
+                      <input
+                        placeholder="Reply"
+                        type="text"
+                        className="w-full"
+                        onBlur={(e) => setReply(e.target.value)}
+                      />
+                      <button
+                        className="shrink-0 h-14 w-14 bg-primary/10 border border-primary hover:bg-primary rounded-full transition-all  grid place-items-center text-primary hover:text-white"
+                        type="button"
+                        onClick={() => handleReply(id)}
+                      >
+                        <BsArrowRightShort size={30} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
-
-            <div className="flex gap-3 my-5">
-              <input
-                placeholder="Ask a question..."
-                type="text"
-                className="w-full"
-              />
-              <button
-                className="shrink-0 h-14 w-14 bg-primary/10 border border-primary hover:bg-primary rounded-full transition-all  grid place-items-center text-primary hover:text-white"
-                type="button"
-              >
-                <BsArrowRightShort size={30} />
-              </button>
-            </div>
+            {user.role === "candidate" && (
+              <form onSubmit={handleSubmit(handleQuestion)}>
+                <div className="flex gap-3 my-5">
+                  <input
+                    placeholder="Ask a question..."
+                    type="text"
+                    className="w-full"
+                    {...register("question")}
+                  />
+                  <button
+                    className="shrink-0 h-14 w-14 bg-primary/10 border border-primary hover:bg-primary rounded-full transition-all  grid place-items-center text-primary hover:text-white"
+                    type="submit"
+                  >
+                    <BsArrowRightShort size={30} />
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       </div>

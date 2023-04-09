@@ -17,11 +17,11 @@ const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const onSubmit = (data) => {
-    //console.log(data);
+    console.log(data);
     dispatch(
       loginUser({
         email: data.email,
-        password: data.email,
+        password: data.password,
       })
     );
   };
